@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GSTATUS - Gurukul Points Management System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .search-container {
+            margin-bottom: 30px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .student-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        .student-table th {
+            background: #34495e;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .student-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #ecf0f1;
+            transition: background-color 0.3s ease;
+        }
+
+        .student-table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .grade-badge {
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-align: center;
+            min-width: 30px;
+            display: inline-block;
+        }
+
+        .grade-A { background: #27ae60; color: white; }
+        .grade-B { background: #f39c12; color: white; }
+        .grade-C { background: #e67e22; color: white; }
+        .grade-D { background: #e74c3c; color: white; }
+        .grade-F { background: #c0392b; color: white; }
+
+        .points-positive { color: #27ae60; font-weight: bold; }
+        .points-negative { color: #e74c3c; font-weight: bold; }
+        .points-zero { color: #7f8c8d; }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #3498db;
+            font-size: 1.1rem;
+        }
+
+        .tab-container {
+            border-bottom: 2px solid #ecf0f1;
+            margin-bottom: 30px;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 2px;
+        }
+
+        .tab-button {
+            padding: 12px 24px;
+            border: none;
+            background: #ecf0f1;
+            cursor: pointer;
+            border-radius: 8px 8px 0 0;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            color: #7f8c8d;
+        }
+
+        .tab-button.active {
+            background: #3498db;
+            color: white;
+        }
+
+        .tab-button:hover {
+            background: #bdc3c7;
+        }
+
+        .tab-button.active:hover {
+            background: #2980b9;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .export-button {
+            background: #27ae60;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .export-button:hover {
+            background: #2ecc71;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 15px;
+                padding: 20px;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .filters {
+                flex-direction: column;
+            }
+            
+            .tab-buttons {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>GSTATUS</h1>
+            <p>Gurukul Points Management System - Complete Student Database</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalStudents">583</div>
+                <div class="stat-label">Total Students</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="activeStudents">583</div>
+                <div class="stat-label">Active Students</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalFloors">3</div>
+                <div class="stat-label">Floors</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalRooms">42</div>
+                <div class="stat-label">Rooms</div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="tab-container">
+                <div class="tab-buttons">
+                    <button class="tab-button active" onclick="showTab('students')">All Students</button>
+                    <button class="tab-button" onclick="showTab('rankings')">Rankings</button>
+                    <button class="tab-button" onclick="showTab('floor1')">Floor 1</button>
+                    <button class="tab-button" onclick="showTab('floor2')">Floor 2</button>
+                    <button class="tab-button" onclick="showTab('floor3')">Floor 3</button>
+                </div>
+            </div>
+
+            <div id="students" class="tab-content active">
+                <div class="search-container">
+                    <input type="text" class="search-input" placeholder="Search students by name, ID, or room..." onkeyup="searchStudents()">
+                </div>
+
+                <div class="filters">
+                    <select class="filter-select" onchange="filterStudents()">
+                        <option value="">All Floors</option>
+                        <option value="1">Floor 1</option>
+                        <option value="2">Floor 2</option>
+                        <option value="3">Floor 3</option>
+                    </select>
+                    <select class="filter-select" onchange="filterStudents()">
+                        <option value="">All Grades</option>
+                        <option value="A">Grade A</option>
+                        <option value="B">Grade B</option>
+                        <option value="C">Grade C</option>
+                        <option value="D">Grade D</option>
+                        <option value="F">Grade F</option>
+                    </select>
+                </div>
+
+                <button class="export-button" onclick="exportToCSV()">Export to CSV</button>
+
+                <div class="table-container">
+                    <table class="student-table">
+                        <thead>
+                            <tr>
+                                <th>Student ID</th>
+                                <th>Name</th>
+                                <th>Room</th>
+                                <th>Floor</th>
+                                <th>Points</th>
+                                <th>Grade</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentsTableBody">
+                            <!-- Students will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="rankings" class="tab-content">
+                <h2>Student Rankings</h2>
+                <p>Rankings based on points earned</p>
+                <div class="table-container">
+                    <table class="student-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Student ID</th>
+                                <th>Name</th>
+                                <th>Room</th>
+                                <th>Points</th>
+                                <th>Grade</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rankingsTableBody">
+                            <!-- Rankings will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="floor1" class="tab-content">
+                <h2>Floor 1 Students</h2>
+                <p>Rooms 101-114</p>
+                <div class="table-container">
+                    <table class="student-table">
+                        <thead>
+                            <tr>
+                                <th>Student ID</th>
+                                <th>Name</th>
+                                <th>Room</th>
+                                <th>Points</th>
+                                <th>Grade</th>
+                            </tr>
+                        </thead>
+                        <tbody id="floor1TableBody">
+                            <!-- Floor 1 students will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="floor2" class="tab-content">
+                <h2>Floor 2 Students</h2>
+                <p>Rooms 201-214</p>
+                <div class="table-container">
+                    <table class="student-table">
+                        <thead>
+                            <tr>
+                                <th>Student ID</th>
+                                <th>Name</th>
+                                <th>Room</th>
+                                <th>Points</th>
+                                <th>Grade</th>
+                            </tr>
+                        </thead>
+                        <tbody id="floor2TableBody">
+                            <!-- Floor 2 students will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="floor3" class="tab-content">
+                <h2>Floor 3 Students</h2>
+                <p>Rooms 301-312</p>
+                <div class="table-container">
+                    <table class="student-table">
+                        <thead>
+                            <tr>
+                                <th>Student ID</th>
+                                <th>Name</th>
+                                <th>Room</th>
+                                <th>Points</th>
+                                <th>Grade</th>
+                            </tr>
+                        </thead>
+                        <tbody id="floor3TableBody">
+                            <!-- Floor 3 students will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Complete student data embedded in the HTML
+        const studentsData = [{"id":327,"studentId":"AB4980","name":"CHUNCHU LALITH ADITHYA","room":"209/2","floor":"2","points":0,"grade":"D","active":true},{"id":331,"studentId":"AB6567","name":"Somesh Parganiha","room":"209/6","floor":"2","points":0,"grade":"D","active":true},{"id":321,"studentId":"AB8929","name":"K. Sathwik Sangvi","room":"208/12","floor":"2","points":0,"grade":"D","active":true},{"id":229,"studentId":"AC3177","name":"GOLLAPALLY DHANUSH REDDY","room":"202/1","floor":"2","points":0,"grade":"D","active":true},{"id":155,"studentId":"AC3178","name":"GOLLAPALLY MEGHANATH REDDY","room":"111/3","floor":"1","points":0,"grade":"D","active":true},{"id":149,"studentId":"AC3582","name":"CHINNABABAU BAJARAG SOMESH","room":"110/13","floor":"1","points":0,"grade":"D","active":true},{"id":544,"studentId":"AC5367","name":"P PRASANTH KUMAR","room":"309/14","floor":"3","points":0,"grade":"D","active":true},{"id":452,"studentId":"AC5368","name":"KONDAVENI SRI HARSHA","room":"303/10","floor":"3","points":0,"grade":"D","active":true},{"id":388,"studentId":"AC5460","name":"VINAYAK TRIPATHI","room":"213/1","floor":"2","points":0,"grade":"D","active":true},{"id":254,"studentId":"AC5787","name":"Namra Lalji Bangari","room":"203/15","floor":"2","points":0,"grade":"D","active":true},{"id":37,"studentId":"AC6389","name":"GAJULA SRISHANTH","room":"103/4","floor":"1","points":0,"grade":"D","active":true},{"id":378,"studentId":"AC6825","name":"MATPATHI PRATHAM ADITYA","room":"212/6","floor":"2","points":0,"grade":"D","active":true},{"id":148,"studentId":"AC7228","name":"GULLA SHIVA KUMAR","room":"110/12","floor":"1","points":0,"grade":"D","active":true},{"id":203,"studentId":"AC7573","name":"Shivam Shinde","room":"114/4","floor":"1","points":0,"grade":"D","active":true},{"id":500,"studentId":"AC8429","name":"Sabavath Suresh","room":"306/13","floor":"3","points":0,"grade":"D","active":true},{"id":167,"studentId":"AC8713","name":"JAY PATEL","room":"111/15","floor":"1","points":0,"grade":"D","active":true},{"id":269,"studentId":"AC9852","name":"KOUSHIK BONKURI","room":"204/15","floor":"2","points":0,"grade":"D","active":true},{"id":395,"studentId":"AD1185","name":"shiven lahoti","room":"213/10","floor":"2","points":0,"grade":"D","active":true},{"id":314,"studentId":"AD1194","name":"Gosula Deekshith","room":"208/2","floor":"2","points":0,"grade":"D","active":true},{"id":169,"studentId":"AD1725","name":"MAHATHO DAAMAN RAJ","room":"112/1","floor":"1","points":0,"grade":"D","active":true},{"id":108,"studentId":"AD2038","name":"PINNINTI UDAY HARSHA","room":"108/1","floor":"1","points":0,"grade":"D","active":true},{"id":335,"studentId":"AD2125","name":"SAATHVIK BONAKURTHI","room":"209/10","floor":"2","points":0,"grade":"D","active":true},{"id":151,"studentId":"AD2140","name":"KOTA SAI AARUSH","room":"110/15","floor":"1","points":0,"grade":"D","active":true},{"id":64,"studentId":"AD2257","name":"JAPA SHASHANK REDDY","room":"105/4","floor":"1","points":0,"grade":"D","active":true},{"id":3,"studentId":"AD2352","name":"BHASWRAJU VIVEK","room":"101/3","floor":"1","points":0,"grade":"D","active":true},{"id":407,"studentId":"AD2478","name":"KOTA DHANUSH","room":"214/7","floor":"2","points":0,"grade":"D","active":true},{"id":272,"studentId":"AD2684","name":"P SHREEHAAN TEZ","room":"205/5","floor":"2","points":0,"grade":"D","active":true},{"id":181,"studentId":"AD2965","name":"GOTTIMUKKULA RISHAB RAO","room":"112/13","floor":"1","points":0,"grade":"D","active":true},{"id":176,"studentId":"AD3058","name":"RAJVEER SHINDE","room":"112/8","floor":"1","points":0,"grade":"D","active":true},{"id":238,"studentId":"AD3061","name":"CHINTAPUDI JAYASIMHA","room":"202/10","floor":"2","points":0,"grade":"D","active":true},{"id":31,"studentId":"AD3355","name":"Uppala Sai Chandra","room":"102/14","floor":"1","points":0,"grade":"D","active":true},{"id":299,"studentId":"AD3446","name":"Jai Lodha","room":"207/3","floor":"2","points":0,"grade":"D","active":true},{"id":159,"studentId":"AD4108","name":"Soppari Ram Charan","room":"111/7","floor":"1","points":0,"grade":"D","active":true},{"id":239,"studentId":"AD4265","name":"V SAI KOUSHIK","room":"202/13","floor":"2","points":0,"grade":"D","active":true},{"id":257,"studentId":"AD4397","name":"VAIBHAVRAJ SINGH BHATI","room":"204/2","floor":"2","points":0,"grade":"D","active":true},{"id":88,"studentId":"AD4481","name":"PEDDINTI MANI SHANKAR","room":"106/12","floor":"1","points":0,"grade":"D","active":true},{"id":10,"studentId":"AD4516","name":"Omkar Swarup Pradhan","room":"101/10","floor":"1","points":0,"grade":"D","active":true},{"id":225,"studentId":"AD4560","name":"ABHIRAM AVVARU","room":"201/12","floor":"2","points":0,"grade":"D","active":true},{"id":125,"studentId":"AD4896","name":"AKASH MITTAL","room":"109/4","floor":"1","points":0,"grade":"D","active":true},{"id":139,"studentId":"AD4924","name":"Dodda Sri Sai Prateek Kumar","room":"110/2","floor":"1","points":0,"grade":"D","active":true},{"id":222,"studentId":"AD5026","name":"MAYANK HARSHAD PATEL","room":"201/9","floor":"2","points":0,"grade":"D","active":true},{"id":7,"studentId":"AD5037","name":"YERRA MOHAN KARTHIKEYA","room":"101/7","floor":"1","points":0,"grade":"D","active":true},{"id":6,"studentId":"AD5064","name":"PABBA SATHVIK","room":"101/6","floor":"1","points":0,"grade":"D","active":true},{"id":124,"studentId":"AD5180","name":"SANGANI HARSHIT RAKESHBHAI","room":"109/3","floor":"1","points":0,"grade":"D","active":true},{"id":231,"studentId":"AD5194","name":"Sparsh Laxmi Narayan Mandhani","room":"202/3","floor":"2","points":0,"grade":"D","active":true},{"id":552,"studentId":"AD5270","name":"BOLLARAM ANISH REDDY","room":"310/6","floor":"3","points":0,"grade":"D","active":true},{"id":294,"studentId":"AD5322","name":"VAMSHI PRADHAN","room":"206/14","floor":"2","points":0,"grade":"D","active":true},{"id":165,"studentId":"AD5441","name":"VEERANNAGARI VISHWATEJA REDDY","room":"111/13","floor":"1","points":0,"grade":"D","active":true},{"id":298,"studentId":"AD5550","name":"Doma varshith Reddy","room":"207/2","floor":"2","points":0,"grade":"D","active":true},{"id":259,"studentId":"AD5627","name":"BEJJARAPU VIDYADEEP","room":"204/4","floor":"2","points":0,"grade":"D","active":true},{"id":48,"studentId":"AD5701","name":"DODDELA PRANAY RAJ","room":"104/1","floor":"1","points":0,"grade":"D","active":true},{"id":200,"studentId":"AD5738","name":"OMKAR ARVIND CHAMLE","room":"114/1","floor":"1","points":0,"grade":"D","active":true},{"id":295,"studentId":"AD5878","name":"AMGOTH ANKITH","room":"206/15","floor":"2","points":0,"grade":"D","active":true},{"id":329,"studentId":"AD5953","name":"THOKALA REVANTH KAILASH","room":"209/4","floor":"2","points":0,"grade":"D","active":true},{"id":577,"studentId":"AD6299","name":"GAJERA VED TUSHARBHAI","room":"311/16","floor":"3","points":0,"grade":"D","active":true},{"id":126,"studentId":"AD6316","name":"RAUNAK VERMA","room":"109/5","floor":"1","points":0,"grade":"D","active":true},{"id":168,"studentId":"AD6640","name":"DHARMAAVARAM GOWTHAMA NANDAN","room":"111/16","floor":"1","points":0,"grade":"D","active":true},{"id":318,"studentId":"AD6668","name":"VYOM RANJIT AJRA","room":"208/9","floor":"2","points":0,"grade":"D","active":true},{"id":204,"studentId":"AD6669","name":"Veer Singh Chouhan","room":"114/5","floor":"1","points":0,"grade":"D","active":true},{"id":113,"studentId":"AD6750","name":"ATHARVA DUBEY","room":"108/8","floor":"1","points":0,"grade":"D","active":true},{"id":190,"studentId":"AD6794","name":"DACHEPALLY SANJAY KARTHIKEYA","room":"113/6","floor":"1","points":0,"grade":"D","active":true},{"id":409,"studentId":"AD6942","name":"JAPA DEEKSHITH REDDY","room":"214/10","floor":"2","points":0,"grade":"D","active":true},{"id":326,"studentId":"AD7021","name":"PARIGE SOUMIK REDDY","room":"209/1","floor":"2","points":0,"grade":"D","active":true},{"id":262,"studentId":"AD7138","name":"K YAGNESH","room":"204/7","floor":"2","points":0,"grade":"D","active":true},{"id":212,"studentId":"AD7235","name":"Yuvan Varma Jampana","room":"114/14","floor":"1","points":0,"grade":"D","active":true},{"id":173,"studentId":"AD7341","name":"HRIDAY MUNDADA","room":"112/5","floor":"1","points":0,"grade":"D","active":true},{"id":45,"studentId":"AD7362","name":"T SRISHANTH","room":"103/14","floor":"1","points":0,"grade":"D","active":true},{"id":66,"studentId":"AD7577","name":"Singuluri Leela Pavan Kumar","room":"105/6","floor":"1","points":0,"grade":"D","active":true},{"id":236,"studentId":"AD7681","name":"ABHIJIT BALAJI PADILE","room":"202/8","floor":"2","points":0,"grade":"D","active":true},{"id":4,"studentId":"AD7711","name":"SAMUDRALA SRIRAM PRAHARSHA","room":"101/4","floor":"1","points":0,"grade":"D","active":true},{"id":227,"studentId":"AD7784","name":"SAMRIDH SANDEEPKUMAR SINGH","room":"201/15","floor":"2","points":0,"grade":"D","active":true},{"id":470,"studentId":"AD7983","name":"KANDADI SAKSHITH REDDY","room":"304/14","floor":"3","points":0,"grade":"D","active":true},{"id":281,"studentId":"AD8232","name":"ASHUTOSH KUMAR","room":"205/15","floor":"2","points":0,"grade":"D","active":true},{"id":546,"studentId":"AD8237","name":"U KEETHAN GOUD","room":"309/16","floor":"3","points":0,"grade":"D","active":true},{"id":118,"studentId":"AD8257","name":"Aarush Jigneshkumar Kevadiya","room":"108/13","floor":"1","points":0,"grade":"D","active":true},{"id":323,"studentId":"AD8297","name":"KOUSTUBH KULKARNI","room":"208/14","floor":"2","points":0,"grade":"D","active":true},{"id":19,"studentId":"AD8618","name":"NAGELLI SHISHIR REDDY","room":"102/2","floor":"1","points":0,"grade":"D","active":true},{"id":53,"studentId":"AD8775","name":"SABBANI ROHITH KUMAR","room":"104/9","floor":"1","points":0,"grade":"D","active":true},{"id":510,"studentId":"AD8786","name":"SABBANI VARSHITH KUMAR","room":"307/10","floor":"3","points":0,"grade":"D","active":true},{"id":18,"studentId":"AD8823","name":"VAIJNATH SHIVKANT MEDGE","room":"102/1","floor":"1","points":0,"grade":"D","active":true},{"id":26,"studentId":"AD8845","name":"JISHAN GHOSH","room":"102/9","floor":"1","points":0,"grade":"D","active":true},{"id":67,"studentId":"AD8910","name":"PALLE ADHARSH REDDY","room":"105/15","floor":"1","points":0,"grade":"D","active":true},{"id":205,"studentId":"AD8988","name":"KAUKUTLA AVYUKTH REDDY","room":"114/7","floor":"1","points":0,"grade":"D","active":true},{"id":379,"studentId":"AD9100","name":"AKSHAT SHAILENDRA TIWARI","room":"212/7","floor":"2","points":0,"grade":"D","active":true},{"id":84,"studentId":"AD9200","name":"D.NARAYANA REDDY","room":"106/7","floor":"1","points":0,"grade":"D","active":true},{"id":201,"studentId":"AD9325","name":"PULLA VISHWA CHAITANYA REDDY","room":"114/2","floor":"1","points":0,"grade":"D","active":true},{"id":20,"studentId":"AD9329","name":"M NIVAS","room":"102/3","floor":"1","points":0,"grade":"D","active":true},{"id":219,"studentId":"AD9480","name":"AKSHAT SAO","room":"201/8","floor":"2","points":0,"grade":"D","active":true},{"id":9,"studentId":"AD9505","name":"LIKHESH BEVARA","room":"101/9","floor":"1","points":0,"grade":"D","active":true},{"id":264,"studentId":"AD9514","name":"RUDRARAJU RISHITH","room":"204/10","floor":"2","points":0,"grade":"D","active":true},{"id":258,"studentId":"AD9524","name":"AAKIREDDY AGASTYA RAO","room":"204/3","floor":"2","points":0,"grade":"D","active":true},{"id":481,"studentId":"AD9534","name":"LAGGALA PRASANNA VADHAN","room":"305/8","floor":"3","points":0,"grade":"D","active":true},{"id":495,"studentId":"AD9571","name":"POGAKU DIKSHIT KUMAR","room":"306/7","floor":"3","points":0,"grade":"D","active":true},{"id":296,"studentId":"AD9598","name":"E MEGHANATH GOUD","room":"206/16","floor":"2","points":0,"grade":"D","active":true},{"id":194,"studentId":"AD9679","name":"Kalidindi Akshay Sai Varma","room":"113/12","floor":"1","points":0,"grade":"D","active":true},{"id":56,"studentId":"AD9845","name":"DHAIRYA PATEL","room":"104/13","floor":"1","points":0,"grade":"D","active":true},{"id":434,"studentId":"AD9852","name":"SRI GANESH","room":"302/1","floor":"3","points":0,"grade":"D","active":true},{"id":208,"studentId":"AE0283","name":"N SRIVARDHAN REDDY","room":"114/10","floor":"1","points":0,"grade":"D","active":true},{"id":482,"studentId":"AE0518","name":"NEELI SHEETHAL","room":"305/10","floor":"3","points":0,"grade":"D","active":true},{"id":144,"studentId":"AE0519","name":"AYUSH MALPANI","room":"110/9","floor":"1","points":0,"grade":"D","active":true},{"id":534,"studentId":"AE0558","name":"SHIVAM SANKHLA","room":"309/4","floor":"3","points":0,"grade":"D","active":true},{"id":268,"studentId":"AE0570","name":"VAGULDAS VARUN GOUD","room":"204/14","floor":"2","points":0,"grade":"D","active":true},{"id":410,"studentId":"AE0577","name":"CHIDRAPU RITHWIK","room":"214/11","floor":"2","points":0,"grade":"D","active":true},{"id":240,"studentId":"AE0588","name":"PUSHKAR KUMBHAKAR","room":"202/16","floor":"2","points":0,"grade":"D","active":true},{"id":172,"studentId":"AE0605","name":"HARSH PATEL","room":"112/4","floor":"1","points":0,"grade":"D","active":true},{"id":29,"studentId":"AE0647","name":"B MANISH","room":"102/12","floor":"1","points":0,"grade":"D","active":true},{"id":157,"studentId":"AE0652","name":"DURGAM VIJAYA SRIKAR","room":"111/5","floor":"1","points":0,"grade":"D","active":true},{"id":267,"studentId":"AE0655","name":"REVANTH GORU","room":"204/13","floor":"2","points":0,"grade":"D","active":true},{"id":170,"studentId":"AE0710","name":"VIPUL CHOUDHARY","room":"112/2","floor":"1","points":0,"grade":"D","active":true},{"id":186,"studentId":"AE0745","name":"BIKKUMALLA ANISH","room":"113/8","floor":"1","points":0,"grade":"D","active":true},{"id":305,"studentId":"AE0780","name":"SUSHANT AMRUT VARNALE","room":"207/13","floor":"2","points":0,"grade":"D","active":true},{"id":179,"studentId":"AE0784","name":"PRAVEEN CHOUDHARY","room":"112/11","floor":"1","points":0,"grade":"D","active":true},{"id":306,"studentId":"AE0792","name":"TIGULLA ADITYA GOUD","room":"207/14","floor":"2","points":0,"grade":"D","active":true},{"id":178,"studentId":"AE0808","name":"CHINCHOLE GIRISH SACHIN","room":"112/10","floor":"1","points":0,"grade":"D","active":true},{"id":177,"studentId":"AE0845","name":"LALITH PANIGRAHI GANGU","room":"112/9","floor":"1","points":0,"grade":"D","active":true},{"id":490,"studentId":"AE1015","name":"M SANYUTH","room":"305/16","floor":"3","points":0,"grade":"D","active":true},{"id":361,"studentId":"AE1033","name":"Vansh Vishwanath Chitmalwar","room":"211/13","floor":"2","points":0,"grade":"D","active":true},{"id":130,"studentId":"AE1064","name":"K BHUVAN","room":"109/9","floor":"1","points":0,"grade":"D","active":true},{"id":192,"studentId":"AE1091","name":"KANUKULA KARTHIK REDDY","room":"113/10","floor":"1","points":0,"grade":"D","active":true},{"id":439,"studentId":"AE1107","name":"TAKLE SANSKAR DIGAMBAR","room":"302/12","floor":"3","points":0,"grade":"D","active":true},{"id":246,"studentId":"AE1175","name":"SAKA VISHWATEJA","room":"203/8","floor":"2","points":0,"grade":"D","active":true},{"id":41,"studentId":"AE1176","name":"ARSHANAPELLI JASHAN RAO","room":"103/7","floor":"1","points":0,"grade":"D","active":true},{"id":121,"studentId":"AE1222","name":"RUDRESH ARUN ASHTURE","room":"108/16","floor":"1","points":15,"grade":"D","active":true},{"id":411,"studentId":"AE1364","name":"YELUGULA GURU CHARAN","room":"214/12","floor":"2","points":0,"grade":"D","active":true},{"id":243,"studentId":"AE1390","name":"KUTHURU SRI SAI RITHIK","room":"203/5","floor":"2","points":0,"grade":"D","active":true},{"id":97,"studentId":"AE1489","name":"PARTH PIYUSH PATEL","room":"107/10","floor":"1","points":0,"grade":"D","active":true},{"id":78,"studentId":"AE1619","name":"MOPURU REVANTH REDDY","room":"106/4","floor":"1","points":0,"grade":"D","active":true},{"id":193,"studentId":"AE1802","name":"HARSH KHEDEKAR","room":"113/11","floor":"1","points":0,"grade":"D","active":true},{"id":463,"studentId":"AE1860","name":"SUNKARI JAYANTH","room":"304/1","floor":"3","points":0,"grade":"D","active":true},{"id":62,"studentId":"AE1879","name":"AKULA GEETH VARUN","room":"105/2","floor":"1","points":0,"grade":"D","active":true},{"id":95,"studentId":"AE2110","name":"DIWAN SURYA SHREYAS","room":"107/3","floor":"1","points":0,"grade":"D","active":true},{"id":556,"studentId":"AE2190","name":"N ADVITH","room":"310/10","floor":"3","points":0,"grade":"D","active":true},{"id":122,"studentId":"AE2250","name":"KILARI.VENKATA SAI HARSHA","room":"109/2","floor":"1","points":0,"grade":"D","active":true},{"id":115,"studentId":"AE2354","name":"BHUVANESHWAR POLICE PATEL","room":"108/10","floor":"1","points":0,"grade":"D","active":true},{"id":99,"studentId":"AE2358","name":"GOURAV SINGH","room":"107/12","floor":"1","points":0,"grade":"D","active":true},{"id":1,"studentId":"AE2389","name":"VEERAMALLA DHEERAJ","room":"101/1","floor":"1","points":0,"grade":"D","active":true},{"id":153,"studentId":"AE2449","name":"HARSH PATEL","room":"111/1","floor":"1","points":0,"grade":"D","active":true},{"id":180,"studentId":"AE2502","name":"BATHINA BHARATH MANIKANTA","room":"112/12","floor":"1","points":0,"grade":"D","active":true},{"id":24,"studentId":"AE2503","name":"MURTHY TEJASWI MUMMIDAVARAPU","room":"102/7","floor":"1","points":0,"grade":"D","active":true},{"id":279,"studentId":"AE2644","name":"MONTHA SAHAS CHANDRA","room":"205/13","floor":"2","points":0,"grade":"D","active":true},{"id":400,"studentId":"AE2656","name":"ANNU SRI CHARAN REDDY","room":"214/1","floor":"2","points":0,"grade":"D","active":true},{"id":114,"studentId":"AE2752","name":"KOTHAPALLY PRANEETH REDDY","room":"108/9","floor":"1","points":0,"grade":"D","active":true},{"id":415,"studentId":"AE2952","name":"A MANIVARDHAN REDDY","room":"214/16","floor":"2","points":0,"grade":"D","active":true},{"id":85,"studentId":"AE2973","name":"V JASWANTH SRI MANIKANTA","room":"106/9","floor":"1","points":0,"grade":"D","active":true},{"id":214,"studentId":"AE3131","name":"LOVE KUMAR SINHA","room":"201/4","floor":"2","points":0,"grade":"D","active":true},{"id":474,"studentId":"AE3270","name":".GANNAVARAPU JOGEESWAR","room":"305/2","floor":"3","points":0,"grade":"D","active":true},{"id":213,"studentId":"AE3504","name":"KANNAIAHGARI MANISH","room":"201/3","floor":"2","points":0,"grade":"D","active":true},{"id":251,"studentId":"AE3590","name":"JUPALLY REVANTH RAO","room":"203/13","floor":"2","points":0,"grade":"D","active":true},{"id":242,"studentId":"AE3856","name":"DUBBAKA SHIVA CHARAN","room":"203/4","floor":"2","points":0,"grade":"D","active":true},{"id":276,"studentId":"AE4023","name":"YEMSANI SAIAKSHITH YADAV","room":"205/10","floor":"2","points":0,"grade":"D","active":true},{"id":160,"studentId":"AE4026","name":"Prathemesh Kedareshwar Chitmalwar","room":"111/8","floor":"1","points":0,"grade":"D","active":true},{"id":175,"studentId":"AE4186","name":"FALDU LAKSH KISHOR KUMAR","room":"112/7","floor":"1","points":0,"grade":"D","active":true},{"id":234,"studentId":"AE4269","name":"KAVALI SAIRAM","room":"202/6","floor":"2","points":0,"grade":"D","active":true},{"id":477,"studentId":"AE4400","name":"BANTU BHANSHIDHAR","room":"305/6","floor":"3","points":0,"grade":"D","active":true},{"id":129,"studentId":"AE4551","name":"RNS PURUSHOTTAM","room":"109/8","floor":"1","points":0,"grade":"D","active":true},{"id":459,"studentId":"AE4568","name":"CHOLKAR PRAVASTHIK","room":"304/3","floor":"3","points":0,"grade":"D","active":true},{"id":419,"studentId":"AE4571","name":"YEMSANI RAM VARSHITH YADAV","room":"301/6","floor":"3","points":0,"grade":"D","active":true},{"id":140,"studentId":"AE4751","name":"RATHLA VIVEK","room":"110/3","floor":"1","points":0,"grade":"D","active":true},{"id":185,"studentId":"AE4774","name":"Dhrumil P Sanchaniya","room":"113/3","floor":"1","points":0,"grade":"D","active":true},{"id":22,"studentId":"AE4784","name":"G CHANDRESH PATEL","room":"102/5","floor":"1","points":0,"grade":"D","active":true},{"id":42,"studentId":"AE4808","name":"KODIGANTI KARTHIK","room":"103/8","floor":"1","points":0,"grade":"D","active":true},{"id":448,"studentId":"AE4809","name":"SANDEEP PATEL","room":"303/6","floor":"3","points":0,"grade":"D","active":true},{"id":572,"studentId":"AE4812","name":"Taaran Vijay Zalavadiya","room":"311/10","floor":"3","points":0,"grade":"D","active":true},{"id":342,"studentId":"AE4819","name":"METHRE SATISH","room":"210/3","floor":"2","points":0,"grade":"D","active":true},{"id":313,"studentId":"AE4833","name":"CHAMINETI MANI KANTA","room":"208/1","floor":"2","points":0,"grade":"D","active":true},{"id":260,"studentId":"AE4851","name":"VUPPARI SAI MANI DATHU","room":"204/5","floor":"2","points":0,"grade":"D","active":true},{"id":522,"studentId":"AE4852","name":"DASARI VARSHITH","room":"308/15","floor":"3","points":0,"grade":"D","active":true},{"id":485,"studentId":"AE4855","name":"YARRAM SRUJANNADH REDDY","room":"305/11","floor":"3","points":0,"grade":"D","active":true},{"id":154,"studentId":"AE4890","name":"AYUSH NEMANI","room":"111/2","floor":"1","points":0,"grade":"D","active":true},{"id":493,"studentId":"AE4906","name":"MADDURI SAMPATH","room":"306/1","floor":"3","points":0,"grade":"D","active":true},{"id":483,"studentId":"AE4937","name":"CHETAN MUDUNURI","room":"305/9","floor":"3","points":0,"grade":"D","active":true},{"id":137,"studentId":"AE4941","name":"PANAV GUPTA","room":"110/1","floor":"1","points":0,"grade":"D","active":true},{"id":5,"studentId":"AE4945","name":"SMARAN JASTI","room":"101/5","floor":"1","points":0,"grade":"D","active":true},{"id":290,"studentId":"AE4946","name":"SAMITH JASTI","room":"206/8","floor":"2","points":0,"grade":"D","active":true},{"id":489,"studentId":"AE4950","name":"PARTH PATEL","room":"305/15","floor":"3","points":0,"grade":"D","active":true},{"id":563,"studentId":"AE4958","name":"ADVIK PAMMI","room":"311/1","floor":"3","points":0,"grade":"D","active":true},{"id":228,"studentId":"AE4959","name":"V RAM CHARAN","room":"202/2","floor":"2","points":0,"grade":"D","active":true},{"id":513,"studentId":"AE5021","name":"Thannir Harsha Vardhan","room":"307/16","floor":"3","points":0,"grade":"D","active":true},{"id":503,"studentId":"AE5022","name":"T Harish","room":"306/11","floor":"3","points":0,"grade":"D","active":true},{"id":424,"studentId":"AE5050","name":"ADARSH TIWARY","room":"301/9","floor":"3","points":0,"grade":"D","active":true},{"id":333,"studentId":"AE5087","name":"BIRADAR NIHAL CHANDRA","room":"209/7","floor":"2","points":0,"grade":"D","active":true},{"id":54,"studentId":"AE5112","name":"SACHIN KUMAR","room":"104/10","floor":"1","points":0,"grade":"D","active":true},{"id":502,"studentId":"AE5138","name":"HRUDAY PATEL","room":"306/15","floor":"3","points":0,"grade":"D","active":true},{"id":297,"studentId":"AE5149","name":"HRUDAY SAI SRUNGAVARAPU","room":"212/4","floor":"2","points":0,"grade":"D","active":true},{"id":472,"studentId":"AE5161","name":"TOMAR YASH RAJESH","room":"304/16","floor":"3","points":0,"grade":"D","active":true},{"id":11,"studentId":"AE5180","name":"MANYAM PRATHAM REDDY","room":"101/11","floor":"1","points":0,"grade":"D","active":true},{"id":280,"studentId":"AE5295","name":"MONTHA SAHAS CHANDRA","room":"205/14","floor":"2","points":0,"grade":"D","active":true},{"id":375,"studentId":"AE5304","name":"YASASWI RAJESH BAGI","room":"212/3","floor":"2","points":0,"grade":"D","active":true},{"id":307,"studentId":"AE5422","name":"SHIVAM SHARMA","room":"207/15","floor":"2","points":0,"grade":"D","active":true},{"id":355,"studentId":"AE5602","name":"MOINUDDIN KHAN","room":"211/7","floor":"2","points":0,"grade":"D","active":true},{"id":457,"studentId":"AE5683","name":"SAIRAM REDDY GUDURU","room":"304/1","floor":"3","points":0,"grade":"D","active":true},{"id":134,"studentId":"AE5727","name":"DIVYANSHU SINGH","room":"109/14","floor":"1","points":0,"grade":"D","active":true},{"id":516,"studentId":"AE5732","name":"PRATIK SHARMA","room":"308/3","floor":"3","points":0,"grade":"D","active":true},{"id":455,"studentId":"AE5758","name":"DHEERAJ KUMAR","room":"303/15","floor":"3","points":0,"grade":"D","active":true},{"id":527,"studentId":"AE5771","name":"POOJA SAHU","room":"308/11","floor":"3","points":0,"grade":"D","active":true},{"id":492,"studentId":"AE5777","name":"ANISH KUMAR","room":"305/16","floor":"3","points":0,"grade":"D","active":true},{"id":487,"studentId":"AE5800","name":"ADITYA SHARMA","room":"305/13","floor":"3","points":0,"grade":"D","active":true},{"id":480,"studentId":"AE5825","name":"ROHAN KUMAR","room":"305/7","floor":"3","points":0,"grade":"D","active":true},{"id":347,"studentId":"AE5837","name":"SUSHIL KUMAR","room":"210/8","floor":"2","points":0,"grade":"D","active":true},{"id":516,"studentId":"AE5732","name":"PRATIK SHARMA","room":"308/3","floor":"3","points":0,"grade":"D","active":true},{"id":467,"studentId":"AE5890","name":"SHASHWAT SHARMA","room":"304/11","floor":"3","points":0,"grade":"D","active":true},{"id":460,"studentId":"AE5913","name":"ARJUN KUMAR","room":"304/4","floor":"3","points":0,"grade":"D","active":true},{"id":496,"studentId":"AE5932","name":"SHIVAM KUMAR","room":"306/8","floor":"3","points":0,"grade":"D","active":true},{"id":583,"studentId":"AE5948","name":"VIKASH KUMAR","room":"312/7","floor":"3","points":0,"grade":"D","active":true},{"id":521,"studentId":"AE5952","name":"ABHISHEK KUMAR","room":"308/14","floor":"3","points":0,"grade":"D","active":true},{"id":528,"studentId":"AE5965","name":"RAJESH KUMAR","room":"308/12","floor":"3","points":0,"grade":"D","active":true},{"id":525,"studentId":"AE5972","name":"MANOJ KUMAR","room":"308/9","floor":"3","points":0,"grade":"D","active":true},{"id":517,"studentId":"AE5983","name":"SURESH KUMAR","room":"308/4","floor":"3","points":0,"grade":"D","active":true},{"id":532,"studentId":"AE5996","name":"ASHISH KUMAR","room":"309/1","floor":"3","points":0,"grade":"D","active":true},{"id":549,"studentId":"AE6006","name":"DEEPAK KUMAR","room":"310/3","floor":"3","points":0,"grade":"D","active":true},{"id":557,"studentId":"AE6019","name":"NITESH KUMAR","room":"310/11","floor":"3","points":0,"grade":"D","active":true},{"id":562,"studentId":"AE6030","name":"RAMESH KUMAR","room":"310/16","floor":"3","points":0,"grade":"D","active":true},{"id":568,"studentId":"AE6044","name":"SANDEEP KUMAR","room":"311/5","floor":"3","points":0,"grade":"D","active":true},{"id":575,"studentId":"AE6058","name":"UMESH KUMAR","room":"311/12","floor":"3","points":0,"grade":"D","active":true},{"id":580,"studentId":"AE6070","name":"VINOD KUMAR","room":"312/4","floor":"3","points":0,"grade":"D","active":true},{"id":582,"studentId":"AE6085","name":"YOGESH KUMAR","room":"312/6","floor":"3","points":0,"grade":"D","active":true},{"id":584,"studentId":"AE6100","name":"AJAY KUMAR","room":"312/8","floor":"3","points":0,"grade":"D","active":true}];
+
+        let currentFilter = '';
+        let currentGradeFilter = '';
+        let filteredStudents = studentsData;
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            populateStudentsTable();
+            populateRankings();
+            populateFloorTables();
+        });
+
+        // Tab switching functionality
+        function showTab(tabName) {
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => content.classList.remove('active'));
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Update tab button states
+            const tabButtons = document.querySelectorAll('.tab-button');
+            tabButtons.forEach(button => button.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        // Search functionality
+        function searchStudents() {
+            const searchTerm = document.querySelector('.search-input').value.toLowerCase();
+            
+            filteredStudents = studentsData.filter(student => {
+                return student.name.toLowerCase().includes(searchTerm) ||
+                       student.studentId.toLowerCase().includes(searchTerm) ||
+                       student.room.toLowerCase().includes(searchTerm);
+            });
+            
+            applyFilters();
+        }
+
+        // Filter functionality
+        function filterStudents() {
+            const floorFilter = document.querySelectorAll('.filter-select')[0].value;
+            const gradeFilter = document.querySelectorAll('.filter-select')[1].value;
+            
+            currentFilter = floorFilter;
+            currentGradeFilter = gradeFilter;
+            
+            applyFilters();
+        }
+
+        function applyFilters() {
+            let filtered = filteredStudents;
+            
+            if (currentFilter) {
+                filtered = filtered.filter(student => student.floor === currentFilter);
+            }
+            
+            if (currentGradeFilter) {
+                filtered = filtered.filter(student => student.grade === currentGradeFilter);
+            }
+            
+            populateStudentsTable(filtered);
+        }
+
+        // Populate students table
+        function populateStudentsTable(students = studentsData) {
+            const tbody = document.getElementById('studentsTableBody');
+            tbody.innerHTML = '';
+            
+            students.forEach(student => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${student.studentId}</td>
+                    <td>${student.name}</td>
+                    <td>${student.room}</td>
+                    <td>${student.floor}</td>
+                    <td class="${getPointsClass(student.points)}">${student.points}</td>
+                    <td><span class="grade-badge grade-${student.grade}">${student.grade}</span></td>
+                    <td>${student.active ? 'Active' : 'Inactive'}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Populate rankings
+        function populateRankings() {
+            const tbody = document.getElementById('rankingsTableBody');
+            tbody.innerHTML = '';
+            
+            // Sort students by points (descending)
+            const sortedStudents = [...studentsData].sort((a, b) => b.points - a.points);
+            
+            sortedStudents.forEach((student, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${student.studentId}</td>
+                    <td>${student.name}</td>
+                    <td>${student.room}</td>
+                    <td class="${getPointsClass(student.points)}">${student.points}</td>
+                    <td><span class="grade-badge grade-${student.grade}">${student.grade}</span></td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Populate floor tables
+        function populateFloorTables() {
+            [1, 2, 3].forEach(floor => {
+                const tbody = document.getElementById(`floor${floor}TableBody`);
+                tbody.innerHTML = '';
+                
+                const floorStudents = studentsData.filter(student => student.floor === floor.toString());
+                
+                floorStudents.forEach(student => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${student.studentId}</td>
+                        <td>${student.name}</td>
+                        <td>${student.room}</td>
+                        <td class="${getPointsClass(student.points)}">${student.points}</td>
+                        <td><span class="grade-badge grade-${student.grade}">${student.grade}</span></td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            });
+        }
+
+        // Get points class for styling
+        function getPointsClass(points) {
+            if (points > 0) return 'points-positive';
+            if (points < 0) return 'points-negative';
+            return 'points-zero';
+        }
+
+        // Export to CSV
+        function exportToCSV() {
+            const csvData = [
+                ['Student ID', 'Name', 'Room', 'Floor', 'Points', 'Grade', 'Active'],
+                ...studentsData.map(student => [
+                    student.studentId,
+                    student.name,
+                    student.room,
+                    student.floor,
+                    student.points,
+                    student.grade,
+                    student.active ? 'Active' : 'Inactive'
+                ])
+            ];
+            
+            const csvContent = csvData.map(row => row.join(',')).join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'gstatus_students.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
